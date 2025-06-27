@@ -1,0 +1,50 @@
+package rules.customer
+
+import org.example.model.Customer
+import org.example.model.Classification
+import java.math.BigDecimal
+
+// Rule 1: Classify customers with high account balance
+rule "Classify High Account Balance"
+when
+    $c : Customer(C_ACCTBAL > 10000.0B)
+then
+    Classification result = new Classification($c.getC_NAME(), "High Balance");
+    insert(result);
+end
+
+// Rule 2: Classify customers in the AUTOMOBILE market segment
+rule "Classify Automobile Segment"
+when
+    $c : Customer(C_MKTSEGMENT == "AUTOMOBILE")
+then
+    Classification result = new Classification($c.getC_NAME(), "Automobile Segment");
+    insert(result);
+end
+
+// Rule 3: Classify customers with suspicious comment patterns
+rule "Classify Suspicious Comments"
+when
+    $c : Customer(C_COMMENT matches ".*complain.*|.*slow.*")
+then
+    Classification result = new Classification($c.getC_NAME(), "Suspicious Comment");
+    insert(result);
+end
+
+// Rule 4: Classify VIP customers from nation key 5 with high balance
+rule "Classify VIP from Nation 5"
+when
+    $c : Customer(C_NATIONKEY == 5 && C_ACCTBAL >= 5000.0B)
+then
+    Classification result = new Classification($c.getC_NAME(), "VIP Nation 5");
+    insert(result);
+end
+
+// Rule 5: Classify customers with zero account balance as inactive
+rule "Classify Inactive Customer"
+when
+    $c : Customer(C_ACCTBAL.compareTo(BigDecimal.ZERO) == 0)
+then
+    Classification result = new Classification($c.getC_NAME(), "Inactive");
+    insert(result);
+end
