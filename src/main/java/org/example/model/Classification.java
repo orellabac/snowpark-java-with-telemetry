@@ -3,12 +3,14 @@ package org.example.model;
 
 public class Classification {
     private String name;
+    private Long   key;
     private String classification;
 
     public Classification() {}
 
-    public Classification(String name, String classification) {
+    public Classification(String name, Long key, String classification) {
         this.name = name;
+        this.key = key;
         this.classification = classification;
     }
 
@@ -18,6 +20,14 @@ public class Classification {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getKey() {
+        return key;
+    }
+
+    public void setKey(Long key) {
+        this.key = key;
     }
 
     public String getClassification() {
@@ -30,7 +40,7 @@ public class Classification {
 
     @Override
     public String toString() {
-        return "Classification{name='" + name + "', classification='" + classification + "'}";
+        return "Classification{name='" + name + "', key='" + key + "', classification='" + classification + "'}";
     }
 }
 

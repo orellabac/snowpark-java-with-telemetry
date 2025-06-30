@@ -1,10 +1,8 @@
 package org.example.service;
 
-import java.util.Collection;
 import java.util.List;
 
-import org.example.model.Customer;
-import org.example.model.CustomerType;
+import org.example.util.SFTrack;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.LoggerFactory;
@@ -22,7 +20,7 @@ import org.slf4j.Logger;
 /**
  * Categorization service.
  */
-public class DroolsCategorizeService {
+final public class DroolsCategorizeService {
 
     private final KieContainer kieContainer;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -32,14 +30,27 @@ public class DroolsCategorizeService {
         this.kieContainer = kieContainer;
     }
 
-    public String apply(List<?> facts) {
-        KieSession kieSession = kieContainer.newKieSession();
+    @SFTrack
+    private final KieSession getKieSession() {
+        return kieContainer.newKieSession();
+    }
+
+    @SFTrack
+    public final String apply(List<?> facts) {
+        KieSession kieSession = getKieSession();
         // Populate the kieSession with the facts
         facts.forEach(fact -> kieSession.insert(fact));
         Span.current().addEvent("Inserting facts into KieSession", Attributes.of(
             AttributeKey.stringKey("facts.size"), String.valueOf(facts.size())
         ));
-        logger.info("Facts in KieSession: {}", kieSession.getFactCount());
+        
+        var results = fireRulesAndGetResults(facts, kieSession);
+        return factsToString(results);
+
+    }
+
+    @SFTrack
+    private final Object[] fireRulesAndGetResults(List<?> facts, KieSession kieSession) {
         int firedRules = kieSession.fireAllRules();
         logger.info("Fired {} rules", firedRules);
         logger.info("Facts in KieSession: {}", kieSession.getFactCount());
@@ -48,11 +59,10 @@ public class DroolsCategorizeService {
         Span.current().addEvent("New facts into KieSession", Attributes.of(
             AttributeKey.stringKey("results.length"), String.valueOf(results.length)
         ));
-        return factsToString(results);
-
+        return results;
     }
 
-
+    @SFTrack
     private static String factsToString(Object[] facts) {
                         StringBuilder results = new StringBuilder();
                         results.append("[");

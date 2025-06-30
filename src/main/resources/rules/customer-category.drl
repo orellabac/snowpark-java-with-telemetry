@@ -9,7 +9,7 @@ rule "Classify High Account Balance"
 when
     $c : Customer(C_ACCTBAL > 10000.0B)
 then
-    Classification result = new Classification($c.getC_NAME(), "High Balance");
+    Classification result = new Classification($c.getC_NAME(), $c.getC_CUSTKEY(), "High Balance");
     insert(result);
 end
 
@@ -18,7 +18,7 @@ rule "Classify Automobile Segment"
 when
     $c : Customer(C_MKTSEGMENT == "AUTOMOBILE")
 then
-    Classification result = new Classification($c.getC_NAME(), "Automobile Segment");
+    Classification result = new Classification($c.getC_NAME(), $c.getC_CUSTKEY(), "Automobile Segment");
     insert(result);
 end
 
@@ -27,7 +27,7 @@ rule "Classify Suspicious Comments"
 when
     $c : Customer(C_COMMENT matches ".*complain.*|.*slow.*")
 then
-    Classification result = new Classification($c.getC_NAME(), "Suspicious Comment");
+    Classification result = new Classification($c.getC_NAME(), $c.getC_CUSTKEY(), "Suspicious Comment");
     insert(result);
 end
 
@@ -36,7 +36,7 @@ rule "Classify VIP from Nation 5"
 when
     $c : Customer(C_NATIONKEY == 5 && C_ACCTBAL >= 5000.0B)
 then
-    Classification result = new Classification($c.getC_NAME(), "VIP Nation 5");
+    Classification result = new Classification($c.getC_NAME(), $c.getC_CUSTKEY(), "VIP Nation 5");
     insert(result);
 end
 
@@ -45,6 +45,6 @@ rule "Classify Inactive Customer"
 when
     $c : Customer(C_ACCTBAL.compareTo(BigDecimal.ZERO) == 0)
 then
-    Classification result = new Classification($c.getC_NAME(), "Inactive");
+    Classification result = new Classification($c.getC_NAME(), $c.getC_CUSTKEY(), "Inactive");
     insert(result);
 end
