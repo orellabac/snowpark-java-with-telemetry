@@ -7,7 +7,7 @@ import org.kie.api.builder.KieModule;
 import org.kie.api.runtime.KieContainer;
 import org.kie.internal.io.ResourceFactory;
 
-public class DroolsConfig {
+public class    DroolsConfig {
 
     private static final String RULES_CUSTOMER_RULES_DRL = "rules/customer-category.drl";
 
@@ -19,6 +19,7 @@ public class DroolsConfig {
         KieBuilder kb = kieServices.newKieBuilder(kieFileSystem);
         kb.buildAll();
         KieModule kieModule = kb.getKieModule();
+
         return kieServices.newKieContainer(kieModule.getReleaseId());
     }
 }

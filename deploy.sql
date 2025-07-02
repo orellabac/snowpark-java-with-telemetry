@@ -87,7 +87,7 @@ from results, table(flatten(input => parse_json(results.result))) as f;
 
 
 with input_data as (
-select ROW_NUMBER()  OVER (ORDER BY seq8()) % 128  AS part, C_CUSTKEY, object_construct(*) data
+select ROW_NUMBER()  OVER (ORDER BY seq8()) % 512  AS part, C_CUSTKEY, object_construct(*) data
     from snowflake_sample_data.tpch_sf10.customer  
 ),
 results as (
@@ -104,44 +104,40 @@ from results, table(flatten(input => parse_json(results.result))) as f;
 
 -- 3m 37s 
 
+use warehouse xsmall_wh;
+
+create warehouse if not exists drools_wh
+  with warehouse_size = 'SMALL'
+  auto_suspend = 5
+  auto_resume = true;
 
 
 
-
-CREATE OR REPLACE FUNCTION DROOLS_CLASIFY_V2(DATA STRING)
-  RETURNS STRING
+  CREATE OR REPLACE FUNCTION customSpansJavaExample(data string) RETURNS STRING
   LANGUAGE JAVA
-  RUNTIME_VERSION = '11'
-  IMPORTS = ('@drools_tests/snowpark-java-drools-sample-0.0.1-FAT.jar')
-  HANDLER = 'org.example.udft.CustomerCategorizeUDFHandlerV2.process'
-  PACKAGES = ('com.snowflake:snowpark:latest','com.snowflake:telemetry:0.0.1');
+  PACKAGES = ('com.snowflake:telemetry:latest')
+  HANDLER = 'MyJavaClass.run'
+  as
+  $$
+  import com.snowflake.telemetry.Telemetry;
+  import io.opentelemetry.api.common.AttributeKey;
+  import io.opentelemetry.api.common.Attributes;
+  import io.opentelemetry.api.GlobalOpenTelemetry;
+  import io.opentelemetry.api.trace.Tracer;
+  import io.opentelemetry.api.trace.Span;
+  import io.opentelemetry.context.Scope;
 
+  import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-with input_data as (
-select  object_construct(*) data
-    from snowflake_sample_data.tpch_sf1.customer  
-),
-results as (
-    select PARSE_JSON(DROOLS_CLASIFY_V2(input_data.data::STRING)) value from input_data
-)
-select
-  value:"name" NAME,
-  value:"key" KEY, 
-  value:"classification" CLASSIFICATION 
-from results;
+  class MyJavaClass {
+    public static String run(String data) {
 
--- 22s \
+   Logger logger = LoggerFactory.getLogger(MyJavaClass.class);
+        return ("SLF4J logger implementation: " + logger.getClass().getName());
 
+    }
+  }
+  $$;
 
-with input_data as (
-select  object_construct(*) data
-    from snowflake_sample_data.tpch_sf1.customer 
-),
-results as (
-    select PARSE_JSON(DROOLS_CLASIFY_V2(input_data.data::STRING)) value from input_data order by random()
-)
-select
-  value[0]:"name" NAME,
-  value[0]:"key" KEY, 
-  value[0]:"classification" CLASSIFICATION 
-from results;
+  select customSpansJavaExample(null);
